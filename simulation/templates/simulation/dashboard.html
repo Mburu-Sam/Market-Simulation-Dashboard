@@ -71,9 +71,55 @@
 
     </div>
 
-    <!-- Export Button -->
-    <div class="mt-6 text-right">
+    <!-- Actions -->
+    <div class="mt-6 flex justify-between">
+        <a href="/compare/" class="bg-purple-600 text-white px-4 py-2 rounded">Compare Simulations</a>
         <a href="/export/" class="bg-green-600 text-white px-4 py-2 rounded">Download Excel</a>
+    </div>
+
+    <!-- History Table -->
+    <div class="mt-6 bg-white p-6 rounded-xl shadow">
+        <h2 class="text-xl font-bold mb-4">Simulation History</h2>
+        
+        <!-- Filters -->
+        <div class="flex gap-4 mb-4">
+            <select id="buyerFilter" onchange="filterHistory()" class="border p-2 rounded">
+                <option value="">All Buyers</option>
+                <option value="25">25 buyers</option>
+                <option value="50">50 buyers</option>
+                <option value="75">75 buyers</option>
+                <option value="100">100 buyers</option>
+            </select>
+            <select id="sellerFilter" onchange="filterHistory()" class="border p-2 rounded">
+                <option value="">All Sellers</option>
+                <option value="3">3 sellers</option>
+                <option value="5">5 sellers</option>
+                <option value="10">10 sellers</option>
+            </select>
+        </div>
+
+        <table class="w-full">
+            <thead>
+                <tr class="border-b">
+                    <th class="py-2 text-left">ID</th>
+                    <th class="py-2 text-left">Buyers</th>
+                    <th class="py-2 text-left">Sellers</th>
+                    <th class="py-2 text-left">Total Sales</th>
+                    <th class="py-2 text-left">Date</th>
+                </tr>
+            </thead>
+            <tbody id="historyTable">
+                {% for sim in history %}
+                <tr class="border-b history-row" data-buyers="{{ sim.buyers }}" data-sellers="{{ sim.sellers }}">
+                    <td class="py-2">#{{ sim.id }}</td>
+                    <td class="py-2">{{ sim.buyers }}</td>
+                    <td class="py-2">{{ sim.sellers }}</td>
+                    <td class="py-2">{{ sim.sales|length }}</td>
+                    <td class="py-2">{{ sim.created_at|date:"M d, H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 
 </div>
@@ -115,6 +161,23 @@
             datasets: [{ label: 'Sales', data: data.sales }]
         }
     });
+
+    // Filter history table
+    function filterHistory() {
+        const buyerFilter = document.getElementById('buyerFilter').value;
+        const sellerFilter = document.getElementById('sellerFilter').value;
+        const rows = document.querySelectorAll('.history-row');
+        
+        rows.forEach(row => {
+            const buyers = row.dataset.buyers;
+            const sellers = row.dataset.sellers;
+            
+            const matchBuyer = !buyerFilter || buyers === buyerFilter;
+            const matchSeller = !sellerFilter || sellers === sellerFilter;
+            
+            row.style.display = matchBuyer && matchSeller ? '' : 'none';
+        });
+    }
 </script>
 
 </body>

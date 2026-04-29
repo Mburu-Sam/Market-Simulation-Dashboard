@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Compare Simulations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="bg-gray-100">
+
+<div class="max-w-6xl mx-auto py-10">
+
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">Compare Simulations</h1>
+        <a href="/" class="bg-blue-600 text-white px-4 py-2 rounded">Back to Dashboard</a>
+    </div>
+
+    <!-- Simulation Selector -->
+    <div class="bg-white p-6 rounded-xl shadow mb-6">
+        <form method="get" class="grid grid-cols-3 gap-4">
+            <div>
+                <label class="block mb-1">Simulation 1</label>
+                <select name="sim1" class="w-full border p-2 rounded">
+                    <option value="">-- Select --</option>
+                    {% for sim in simulations %}
+                    <option value="{{ sim.id }}" {% if sim1 and sim1.id == sim.id %}selected{% endif %}>
+                        #{{ sim.id }} - {{ sim.buyers }} buyers, {{ sim.sellers }} sellers - {{ sim.created_at|date:"M d, H:i" }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="block mb-1">Simulation 2</label>
+                <select name="sim2" class="w-full border p-2 rounded">
+                    <option value="">-- Select --</option>
+                    {% for sim in simulations %}
+                    <option value="{{ sim.id }}" {% if sim2 and sim2.id == sim.id %}selected{% endif %}>
+                        #{{ sim.id }} - {{ sim.buyers }} buyers, {{ sim.sellers }} sellers - {{ sim.created_at|date:"M d, H:i" }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="flex items-end">
+                <button class="bg-blue-600 text-white px-4 py-2 rounded w-full">Compare</button>
+            </div>
+        </form>
+    </div>
+
+    {% if sim1 and sim2 %}
+    <!-- Comparison Stats -->
+    <div class="grid grid-cols-2 gap-6 mb-6">
+        <!-- Simulation 1 Stats -->
+        <div class="bg-white p-6 rounded-xl shadow">
+            <h2 class="text-xl font-bold mb-4 text-blue-600">Simulation #{{ sim1.id }}</h2>
+            <p class="text-gray-600 mb-2">{{ sim1.buyers }} buyers, {{ sim1.sellers }} sellers</p>
+            <p class="text-gray-400 text-sm mb-4">{{ sim1.created_at|date:"M d, Y H:i" }}</p>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-gray-50 p-3 rounded">
+                    <h3 class="text-gray-500 text-sm">Avg Price</h3>
+                    <p class="text-xl font-bold">{{ stats1.avg_price|floatformat:2 }}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded">
+                    <h3 class="text-gray-500 text-sm">Total Demand</h3>
+                    <p class="text-xl font-bold">{{ stats1.total_demand }}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded">
+                    <h3 class="text-gray-500 text-sm">Total Sales</h3>
+                    <p class="text-xl font-bold">{{ stats1.total_sales }}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded">
+                    <h3 class="text-gray-500 text-sm">Price Range</h3>
+                    <p class="text-xl font-bold">{{ stats1.min_price|floatformat:1 }} - {{ stats1.max_price|floatformat:1 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simulation 2 Stats -->
+        <div class="bg-white p-6 rounded-xl shadow">
+            <h2 class="text-xl font-bold mb-4 text-green-600">Simulation #{{ sim2.id }}</h2>
+            <p class="text-gray-600 mb-2">{{ sim2.buyers }} buyers, {{ sim2.sellers }} sellers</p>
+            <p class="text-gray-400 text-sm mb-4">{{ sim2.created_at|date:"M d, Y H:i" }}</p>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-gray-50 p-3 rounded">
+                    <h3 class="text-gray-500 text-sm">Avg Price</h3>
+                    <p class="text-xl font-bold">{{ stats2.avg_price|floatformat:2 }}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded">
+                    <h3 class="text-gray-500 text-sm">Total Demand</h3>
+                    <p class="text-xl font-bold">{{ stats2.total_demand }}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded">
+                    <h3 class="text-gray-500 text-sm">Total Sales</h3>
+                    <p class="text-xl font-bold">{{ stats2.total_sales }}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded">
+                    <h3 class="text-gray-500 text-sm">Price Range</h3>
+                    <p class="text-xl font-bold">{{ stats2.min_price|floatformat:1 }} - {{ stats2.max_price|floatformat:1 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comparison Chart -->
+    <div class="bg-white p-6 rounded-xl shadow mb-6">
+        <h3 class="text-xl font-bold mb-4">Price Comparison</h3>
+        <canvas id="compareChart"></canvas>
+    </div>
+
+    <!-- Difference Summary -->
+    <div class="bg-white p-6 rounded-xl shadow">
+        <h3 class="text-xl font-bold mb-4">Comparison Summary</h3>
+        <div class="grid grid-cols-4 gap-4">
+            <div class="text-center p-4 {% if stats1.avg_price > stats2.avg_price %}bg-red-50{% else %}bg-green-50{% endif %} rounded">
+                <h4 class="text-gray-500 text-sm">Avg Price</h4>
+                <p class="font-bold {% if stats1.avg_price > stats2.avg_price %}text-red-600{% else %}text-green-600{% endif %}">
+                    {% if stats1.avg_price > stats2.avg_price %}+{% else %}-{% endif %}
+                    {{ stats1.avg_price|sub:stats2.avg_price|floatformat:2 }}
+                </p>
+            </div>
+            <div class="text-center p-4 {% if stats1.total_demand > stats2.total_demand %}bg-green-50{% else %}bg-red-50{% endif %} rounded">
+                <h4 class="text-gray-500 text-sm">Total Demand</h4>
+                <p class="font-bold {% if stats1.total_demand > stats2.total_demand %}text-green-600{% else %}text-red-600{% endif %}">
+                    {% if stats1.total_demand > stats2.total_demand %}+{% else %}-{% endif %}
+                    {{ stats1.total_demand|sub:stats2.total_demand }}
+                </p>
+            </div>
+            <div class="text-center p-4 {% if stats1.total_sales > stats2.total_sales %}bg-green-50{% else %}bg-red-50{% endif %} rounded">
+                <h4 class="text-gray-500 text-sm">Total Sales</h4>
+                <p class="font-bold {% if stats1.total_sales > stats2.total_sales %}text-green-600{% else %}text-red-600{% endif %}">
+                    {% if stats1.total_sales > stats2.total_sales %}+{% else %}-{% endif %}
+                    {{ stats1.total_sales|sub:stats2.total_sales }}
+                </p>
+            </div>
+            <div class="text-center p-4 rounded">
+                <h4 class="text-gray-500 text-sm">Config Diff</h4>
+                <p class="font-bold">
+                    {{ sim1.buyers|sub:sim2.buyers }} buyers, {{ sim1.sellers|sub:sim2.sellers }} sellers
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const sim1Prices = {{ sim1.prices|safe }};
+        const sim2Prices = {{ sim2.prices|safe }};
+        
+        new Chart(document.getElementById('compareChart'), {
+            type: 'line',
+            data: {
+                labels: sim1Prices.map((_, i) => i),
+                datasets: [
+                    { 
+                        label: 'Sim #{{ sim1.id }}', 
+                        data: sim1Prices,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)'
+                    },
+                    { 
+                        label: 'Sim #{{ sim2.id }}', 
+                        data: sim2Prices,
+                        borderColor: '#16a34a',
+                        backgroundColor: 'rgba(22, 163, 74, 0.1)'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: { mode: 'index', intersect: false },
+            }
+        });
+    </script>
+    {% else %}
+    <div class="bg-white p-6 rounded-xl shadow text-center text-gray-500">
+        <p>Select two simulations above to compare them side by side.</p>
+    </div>
+    {% endif %}
+
+</div>
+
+</body>
+</html>
