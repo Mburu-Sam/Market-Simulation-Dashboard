@@ -12,7 +12,5 @@ __pycache__/
 .DS_Store
 .idea/
 .vscode/
-*.env
-*.venv
-.env/
 .venv/
+db.sqlite3
