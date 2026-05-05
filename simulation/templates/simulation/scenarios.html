@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simulation Scenarios</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+
+<nav class="bg-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between">
+        <h1 class="text-2xl font-bold text-blue-600">Market Simulator</h1>
+        <a href="{% url 'dashboard' %}" class="text-blue-600 hover:underline">Back to Dashboard</a>
+    </div>
+</nav>
+
+<div class="max-w-7xl mx-auto py-10 px-6">
+    <h2 class="text-3xl font-bold mb-8">Pre-configured Scenarios</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for scenario in scenarios %}
+        <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition">
+            <div class="flex items-start justify-between mb-3">
+                <h3 class="text-xl font-bold">{{ scenario.name }}</h3>
+                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm">{{ scenario.get_scenario_type_display }}</span>
+            </div>
+            
+            <p class="text-gray-600 mb-4">{{ scenario.description }}</p>
+            
+            <form method="post" action="{% url 'dashboard' %}" class="flex gap-2">
+                {% csrf_token %}
+                <input type="hidden" name="scenario" value="{{ scenario.id }}">
+                <button type="submit" name="use_scenario" value="true" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex-1">
+                    Use Scenario
+                </button>
+                <a href="{% url 'scenario_detail' scenario.id %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    Details
+                </a>
+            </form>
+        </div>
+        {% empty %}
+        <div class="col-span-3 bg-white p-8 rounded-xl shadow text-center">
+            <p class="text-gray-500">No scenarios available yet</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+</body>
+</html>

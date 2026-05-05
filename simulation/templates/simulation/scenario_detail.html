@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Scenario Details</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+
+<nav class="bg-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between">
+        <h1 class="text-2xl font-bold text-blue-600">Market Simulator</h1>
+        <a href="{% url 'scenarios' %}" class="text-blue-600 hover:underline">Back to Scenarios</a>
+    </div>
+</nav>
+
+<div class="max-w-3xl mx-auto py-10 px-6">
+    <div class="bg-white rounded-xl shadow-lg p-8">
+        <div class="mb-6">
+            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm mb-4 inline-block">
+                {{ scenario.get_scenario_type_display }}
+            </span>
+            <h2 class="text-3xl font-bold">{{ scenario.name }}</h2>
+        </div>
+
+        <p class="text-gray-600 text-lg mb-8">{{ scenario.description }}</p>
+
+        {% if scenario.parameters %}
+        <div class="bg-gray-50 p-6 rounded-lg mb-8">
+            <h3 class="text-xl font-bold mb-4">Parameters</h3>
+            <pre class="bg-gray-100 p-4 rounded text-sm overflow-x-auto">{{ scenario.parameters|safe }}</pre>
+        </div>
+        {% endif %}
+
+        <div class="flex gap-4">
+            <form method="post" action="{% url 'dashboard' %}" class="inline">
+                {% csrf_token %}
+                <input type="hidden" name="scenario" value="{{ scenario.id }}">
+                <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 font-semibold">
+                    Use This Scenario
+                </button>
+            </form>
+            <a href="{% url 'scenarios' %}" class="bg-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-400">
+                Back
+            </a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

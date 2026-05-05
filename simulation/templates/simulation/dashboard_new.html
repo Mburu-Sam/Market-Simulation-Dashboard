@@ -131,6 +131,24 @@
             <h3 class="text-lg font-bold mb-4">Demand vs Sales</h3>
             <canvas id="demandChart"></canvas>
         </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-lg">
+            <h3 class="text-lg font-bold mb-4">Market Efficiency</h3>
+            <canvas id="efficiencyChart"></canvas>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-lg">
+            <h3 class="text-lg font-bold mb-4">Price Distribution</h3>
+            <canvas id="distributionChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Export Options -->
+    <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+        <h3 class="text-lg font-bold mb-4">Export Data</h3>
+        <div id="exportButtons" class="flex gap-2 flex-wrap">
+            <!-- Populated by JavaScript -->
+        </div>
     </div>
 
     <!-- Recent Simulations -->
@@ -178,13 +196,16 @@
 </div>
 
 <script>
-    const data = {{ data|safe }};
-    let priceChart, demandChart;
+    // Initialize charts
+    let priceChart, demandChart, efficiencyChart, distributionChart;
 
-    function initCharts() {
+    function initCharts(data) {
         const ctx1 = document.getElementById('priceChart').getContext('2d');
         const ctx2 = document.getElementById('demandChart').getContext('2d');
+        const ctx3 = document.getElementById('efficiencyChart').getContext('2d');
+        const ctx4 = document.getElementById('distributionChart').getContext('2d');
 
+        // Price chart
         priceChart = new Chart(ctx1, {
             type: 'line',
             data: {
@@ -205,6 +226,7 @@
             }
         });
 
+        // Demand chart
         demandChart = new Chart(ctx2, {
             type: 'bar',
             data: {
@@ -228,13 +250,51 @@
                 scales: {y: {beginAtZero: true}}
             }
         });
+
+        // Efficiency chart
+        const efficiency = data.sales.reduce((a, b) => a + b, 0) / (data.demand.reduce((a, b) => a + b, 0) || 1) * 100;
+        efficiencyChart = new Chart(ctx3, {
+            type: 'doughnut',
+            data: {
+                labels: ['Efficiency', 'Gap'],
+                datasets: [{
+                    data: [efficiency, 100 - efficiency],
+                    backgroundColor: ['#8b5cf6', '#e5e7eb']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {legend: {display: true}}
+            }
+        });
+
+        // Distribution chart
+        distributionChart = new Chart(ctx4, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: data.prices.length}, (_, i) => i),
+                datasets: [{
+                    label: 'Price Distribution',
+                    data: data.prices,
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {legend: {display: true}},
+                scales: {y: {beginAtZero: true}}
+            }
+        });
     }
 
-    function updateDashboard() {
+    function updateDashboard(data) {
         const avgPrice = (data.prices.reduce((a, b) => a + b, 0) / data.prices.length).toFixed(2);
         const totalDemand = data.demand.reduce((a, b) => a + b, 0);
         const totalSales = data.sales.reduce((a, b) => a + b, 0);
-        const efficiency = totalDemand > 0 ? ((totalSales / totalDemand) * 100).toFixed(1) : 0;
+        const efficiency = ((totalSales / totalDemand) * 100).toFixed(1);
 
         document.getElementById('avgPrice').textContent = '$' + avgPrice;
         document.getElementById('totalDemand').textContent = totalDemand;
@@ -242,11 +302,24 @@
         document.getElementById('efficiency').textContent = efficiency + '%';
 
         if (!priceChart) {
-            initCharts();
+            initCharts(data);
         }
+
+        // Add export buttons
+        const simId = 'new'; // Would need to get actual ID from response
+        const exportHTML = `
+            <a href="/export/excel/" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                <i class="fas fa-file-excel"></i> Export Excel
+            </a>
+            <a href="/export/csv/" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                <i class="fas fa-file-csv"></i> Export CSV
+            </a>
+        `;
+        document.getElementById('exportButtons').innerHTML = exportHTML;
     }
 
-    updateDashboard();
+    // Initial load
+    updateDashboard({{ data|safe }});
 </script>
 
 </body>

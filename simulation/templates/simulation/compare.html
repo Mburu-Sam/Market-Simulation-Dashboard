@@ -118,27 +118,27 @@
                 <h4 class="text-gray-500 text-sm">Avg Price</h4>
                 <p class="font-bold {% if stats1.avg_price > stats2.avg_price %}text-red-600{% else %}text-green-600{% endif %}">
                     {% if stats1.avg_price > stats2.avg_price %}+{% else %}-{% endif %}
-                    {{ stats1.avg_price|sub:stats2.avg_price|floatformat:2 }}
+                    {{ diffs.avg_price|floatformat:2 }}
                 </p>
             </div>
             <div class="text-center p-4 {% if stats1.total_demand > stats2.total_demand %}bg-green-50{% else %}bg-red-50{% endif %} rounded">
                 <h4 class="text-gray-500 text-sm">Total Demand</h4>
                 <p class="font-bold {% if stats1.total_demand > stats2.total_demand %}text-green-600{% else %}text-red-600{% endif %}">
                     {% if stats1.total_demand > stats2.total_demand %}+{% else %}-{% endif %}
-                    {{ stats1.total_demand|sub:stats2.total_demand }}
+                    {{ diffs.total_demand }}
                 </p>
             </div>
             <div class="text-center p-4 {% if stats1.total_sales > stats2.total_sales %}bg-green-50{% else %}bg-red-50{% endif %} rounded">
                 <h4 class="text-gray-500 text-sm">Total Sales</h4>
                 <p class="font-bold {% if stats1.total_sales > stats2.total_sales %}text-green-600{% else %}text-red-600{% endif %}">
                     {% if stats1.total_sales > stats2.total_sales %}+{% else %}-{% endif %}
-                    {{ stats1.total_sales|sub:stats2.total_sales }}
+                    {{ diffs.total_sales }}
                 </p>
             </div>
             <div class="text-center p-4 rounded">
                 <h4 class="text-gray-500 text-sm">Config Diff</h4>
                 <p class="font-bold">
-                    {{ sim1.buyers|sub:sim2.buyers }} buyers, {{ sim1.sellers|sub:sim2.sellers }} sellers
+                    {{ diffs.buyers }} buyers, {{ diffs.sellers }} sellers
                 </p>
             </div>
         </div>
@@ -170,6 +170,20 @@
             options: {
                 responsive: true,
                 interaction: { mode: 'index', intersect: false },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Round'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Price ($)'
+                        }
+                    }
+                }
             }
         });
     </script>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simulation Detail</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+
+<nav class="bg-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between">
+        <h1 class="text-2xl font-bold text-blue-600">Market Simulator</h1>
+        <div class="flex gap-4">
+            <a href="{% url 'simulations_list' %}" class="text-blue-600 hover:underline">My Simulations</a>
+            <a href="{% url 'dashboard' %}" class="text-blue-600 hover:underline">Dashboard</a>
+        </div>
+    </div>
+</nav>
+
+<div class="max-w-7xl mx-auto py-10 px-6">
+    <h2 class="text-3xl font-bold mb-8">Simulation #{{ simulation.id }} Details</h2>
+
+    <!-- Basic Info -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white p-4 rounded-lg shadow">
+            <p class="text-gray-500 text-sm">Buyers</p>
+            <p class="text-2xl font-bold">{{ simulation.buyers }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow">
+            <p class="text-gray-500 text-sm">Sellers</p>
+            <p class="text-2xl font-bold">{{ simulation.sellers }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow">
+            <p class="text-gray-500 text-sm">Market Type</p>
+            <p class="text-lg font-bold">{{ simulation.market_type.get_name_display|default:"N/A" }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow">
+            <p class="text-gray-500 text-sm">Date</p>
+            <p class="text-sm font-bold">{{ simulation.created_at|date:"Y-m-d H:i" }}</p>
+        </div>
+    </div>
+
+    <!-- Analytics -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-gradient-to-br from-blue-500 to-blue-700 text-white p-6 rounded-xl shadow-lg">
+            <p class="text-blue-200 text-sm">Average Price</p>
+            <p class="text-3xl font-bold">${{ simulation.avg_price|floatformat:2 }}</p>
+        </div>
+        <div class="bg-gradient-to-br from-green-500 to-green-700 text-white p-6 rounded-xl shadow-lg">
+            <p class="text-green-200 text-sm">Total Demand</p>
+            <p class="text-3xl font-bold">{{ simulation.total_demand }}</p>
+        </div>
+        <div class="bg-gradient-to-br from-purple-500 to-purple-700 text-white p-6 rounded-xl shadow-lg">
+            <p class="text-purple-200 text-sm">Total Sales</p>
+            <p class="text-3xl font-bold">{{ simulation.total_sales }}</p>
+        </div>
+        <div class="bg-gradient-to-br from-red-500 to-red-700 text-white p-6 rounded-xl shadow-lg">
+            <p class="text-red-200 text-sm">Market Efficiency</p>
+            <p class="text-3xl font-bold">{{ simulation.market_efficiency|floatformat:1 }}%</p>
+        </div>
+    </div>
+
+    <!-- Advanced Analytics -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white p-4 rounded-lg shadow">
+            <p class="text-gray-500 text-sm">Max Price</p>
+            <p class="text-xl font-bold">${{ simulation.max_price|floatformat:2 }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow">
+            <p class="text-gray-500 text-sm">Min Price</p>
+            <p class="text-xl font-bold">${{ simulation.min_price|floatformat:2 }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow">
+            <p class="text-gray-500 text-sm">Price Volatility</p>
+            <p class="text-xl font-bold">{{ simulation.price_volatility|floatformat:2 }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow">
+            <p class="text-gray-500 text-sm">Iterations</p>
+            <p class="text-xl font-bold">{{ simulation.iterations }}</p>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div class="bg-white p-6 rounded-xl shadow-lg">
+            <h3 class="text-lg font-bold mb-4">Price Trends</h3>
+            <canvas id="priceChart"></canvas>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-lg">
+            <h3 class="text-lg font-bold mb-4">Demand vs Sales</h3>
+            <canvas id="demandChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Export Options -->
+    <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+        <h3 class="text-lg font-bold mb-4">Export Data</h3>
+        <div class="flex gap-2 flex-wrap">
+            <a href="{% url 'export_csv' simulation.id %}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                <i class="fas fa-file-csv"></i> Export CSV
+            </a>
+            <a href="{% url 'export_excel_sim' simulation.id %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                <i class="fas fa-file-excel"></i> Export Excel
+            </a>
+            <a href="{% url 'export_pdf' simulation.id %}" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                <i class="fas fa-file-pdf"></i> Export PDF Report
+            </a>
+            <a href="{% url 'compare' %}?sim1={{ simulation.id }}" class="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700">
+                <i class="fas fa-chart-line"></i> Compare
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    const data = {
+        prices: {{ simulation.prices|safe }},
+        demand: {{ simulation.demand|safe }},
+        sales: {{ simulation.sales|safe }}
+    };
+
+    const ctx1 = document.getElementById('priceChart').getContext('2d');
+    new Chart(ctx1, {
+        type: 'line',
+        data: {
+            labels: Array.from({length: data.prices.length}, (_, i) => i),
+            datasets: [{
+                label: 'Average Price',
+                data: data.prices,
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {legend: {display: true}},
+            scales: {y: {beginAtZero: true}}
+        }
+    });
+
+    const ctx2 = document.getElementById('demandChart').getContext('2d');
+    new Chart(ctx2, {
+        type: 'bar',
+        data: {
+            labels: Array.from({length: data.demand.length}, (_, i) => i),
+            datasets: [
+                {
+                    label: 'Demand',
+                    data: data.demand,
+                    backgroundColor: '#10b981'
+                },
+                {
+                    label: 'Sales',
+                    data: data.sales,
+                    backgroundColor: '#f59e0b'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {legend: {display: true}},
+            scales: {y: {beginAtZero: true}}
+        }
+    });
+</script>
+
+</body>
+</html>

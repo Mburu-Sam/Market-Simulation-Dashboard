@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simulation Parameters</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+
+<nav class="bg-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between">
+        <h1 class="text-2xl font-bold text-blue-600">Market Simulator</h1>
+        <a href="{% url 'dashboard' %}" class="text-blue-600 hover:underline">Back to Dashboard</a>
+    </div>
+</nav>
+
+<div class="max-w-7xl mx-auto py-10 px-6">
+    <h2 class="text-3xl font-bold mb-8">Custom Parameters</h2>
+
+    <!-- Create New Parameters -->
+    <div class="bg-white p-8 rounded-xl shadow-lg mb-8">
+        <h3 class="text-xl font-bold mb-6">Create New Parameter Set</h3>
+        
+        <form method="post" class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {% csrf_token %}
+            
+            <div class="md:col-span-3">
+                <label class="block text-sm font-semibold mb-2">Name</label>
+                <input type="text" name="name" required class="w-full border border-gray-300 p-2 rounded">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold mb-2">Number of Buyers</label>
+                <input type="number" name="num_buyers" value="50" class="w-full border border-gray-300 p-2 rounded">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold mb-2">Number of Sellers</label>
+                <input type="number" name="num_sellers" value="5" class="w-full border border-gray-300 p-2 rounded">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold mb-2">Iterations</label>
+                <input type="number" name="iterations" value="200" class="w-full border border-gray-300 p-2 rounded">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold mb-2">Buyer Budget Min</label>
+                <input type="number" name="buyer_budget_min" value="50" class="w-full border border-gray-300 p-2 rounded">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold mb-2">Buyer Budget Max</label>
+                <input type="number" name="buyer_budget_max" value="200" class="w-full border border-gray-300 p-2 rounded">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold mb-2">Buyer WTP Min</label>
+                <input type="number" name="buyer_wtp_min" value="20" class="w-full border border-gray-300 p-2 rounded">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold mb-2">Buyer WTP Max</label>
+                <input type="number" name="buyer_wtp_max" value="150" class="w-full border border-gray-300 p-2 rounded">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold mb-2">Seller Price Min</label>
+                <input type="number" name="seller_price_min" value="30" class="w-full border border-gray-300 p-2 rounded">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold mb-2">Seller Price Max</label>
+                <input type="number" name="seller_price_max" value="100" class="w-full border border-gray-300 p-2 rounded">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold mb-2">Price Adjustment Factor</label>
+                <input type="number" name="price_adjustment_factor" value="0.05" step="0.01" class="w-full border border-gray-300 p-2 rounded">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold mb-2">Market Type</label>
+                <select name="market_type" class="w-full border border-gray-300 p-2 rounded">
+                    <option value="">Select Market Type</option>
+                    {% for market in market_types %}
+                        <option value="{{ market.id }}">{{ market.get_name_display }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="md:col-span-3">
+                <button type="submit" class="w-full bg-green-600 text-white py-2 rounded font-semibold hover:bg-green-700">
+                    Create Parameter Set
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Existing Parameters -->
+    <div class="bg-white p-6 rounded-xl shadow-lg">
+        <h3 class="text-xl font-bold mb-4">Your Parameter Sets</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for params in parameters %}
+            <div class="border rounded-lg p-4 hover:shadow-lg transition">
+                <h4 class="text-lg font-bold mb-2">{{ params.name }}</h4>
+                <p class="text-sm text-gray-600 mb-3">
+                    {{ params.num_buyers }} Buyers | {{ params.num_sellers }} Sellers | {{ params.iterations }} Iterations
+                </p>
+                <p class="text-xs text-gray-500 mb-3">
+                    Created: {{ params.created_at|date:"M d, Y" }}
+                </p>
+                <form method="post" action="{% url 'api-parameters-use-for-simulation' params.id %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700">
+                        Use Parameters
+                    </button>
+                </form>
+            </div>
+            {% empty %}
+            <div class="col-span-3 text-center text-gray-500 py-8">
+                No custom parameter sets yet. Create one above!
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
